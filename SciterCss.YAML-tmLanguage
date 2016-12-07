@@ -1,0 +1,283 @@
+scopeName: source.sciter.css
+name: Sciter CSS
+uuid: cccd98df-a526-4251-82a2-3908400ca427
+fileTypes:
+    - css
+foldingStartMarker: '\{\s*$'
+foldingStopMarker: '^\s*\}'
+patterns:
+    - include: '#block-comment'
+    - include: '#line-comment'
+    - include: '#at-import'
+    - include: '#at-font-face'
+    - include: '#at-set'
+    - include: '#at-const'
+    - include: '#at-media'
+    - include: '#at-mixin'
+    - include: '#rule-list'
+    - include: '#selector'
+
+repository:
+    block-comment:
+        name: comment.block.css.sciter
+        begin: '/\*'
+        end: '\*/'
+
+    line-comment:
+        name: comment.line.double-slash.css.sciter
+        begin: '//'
+        end: '$'
+
+    string-double:
+        name: string.quoted.double.css
+        begin: '"'
+        end: '"'
+        beginCaptures:
+            '0': { name: punctuation.definition.string.begin.css }                
+        endCaptures:
+            '0': { name: punctuation.definition.string.end.css }
+        patterns:
+            - name: constant.character.escape.css
+              match: '\\.'              
+
+    string-single:
+        name: string.quoted.single.css
+        begin: ''''
+        end: ''''
+        beginCaptures:
+            '0': { name: punctuation.definition.string.begin.css }
+        endCaptures:
+            '0': { name: punctuation.definition.string.end.css }
+        patterns:
+            - name: constant.character.escape.css
+              match: '\\.'
+
+    url:
+        begin: '\s*(url)\s*(\()\s*'
+        beginCaptures:
+            '1': { name: entity.name.function.css }
+            '2': { name: punctuation.section.function.css }
+        end: '\s*(\))\s*'
+        endCaptures:
+            '1': { name: punctuation.section.function.css}
+        patterns:
+            - include: '#string-single'
+            - include: '#string-double'
+            - include: '#data-url'
+    
+    data-url:
+        match: '(\w+:)?([^\)]+)'
+        captures:
+            '1': {name: markup.bold }
+            '2': {name: variable.parameter.url.css }
+    
+    at-import:
+        begin: '\s*((@)import\b)\s*'
+        beginCaptures:
+            '1': { name: keyword.control.at-rule.import.css }
+            '2': { name: punctuation.definition.keyword.css }
+        end: ';'      
+        patterns:
+            - include: '#string-double'
+            - include: '#string-single'
+            - include: '#block-comment'
+            - include: '#line-comment'
+            - include: '#url'
+    at-font-face:
+        begin: '^\s*((@)font-face\b)'
+        end: '}'
+        beginCaptures:
+            '1': { name: keyword.control.at-rule.font-face.css }
+            '2': { name: punctuation.definition.keyword.css }
+        patterns:
+            - include: '#block-comment'
+            - include: '#line-comment'
+            - include: '#property-name'            
+            - include: '#property-value'
+            - begin: '(src)(:)'
+              end: ';'
+              beginCaptures:
+                  '1': { name: support.type.property-name.css }
+                  '2': { name: punctuation.separator.key-value.css }
+              patterns:
+                  - include: '#url'
+
+    at-mixin:
+        begin: '^\s*((@)mixin\b)\s+([\w-]+)?'
+        end: '}'
+        beginCaptures:
+            '1': { name: keyword.control.at-rule.mixin.css }
+            '2': { name: punctuation.definition.keyword.css }
+            '3': { name: support.type.mixin }
+        patterns:
+            - include: '#block-comment'
+            - include: '#line-comment'
+            - include: '#property-names'            
+            - include: '#property-value'
+            - include: '#sciter-properties'
+
+    at-set:
+        begin: '^\s*((@)set\b)\s+([\w-]+)?(?:\s*(<)\s*([\w\-]+))?(?:\s*{)?' # latest group just to eat { on the same line
+        end: '^\s*}'
+        beginCaptures:
+            '1': { name: keyword.control.at-rule.at-set.css }
+            '2': { name: punctuation.definition.keyword.css }
+            '3': { name: support.type.style-set }
+            '4': { name: punctuation.definition.keyword.css }
+            '5': { name: support.type.style-set }
+        patterns:
+            - include: '#block-comment'
+            - include: '#line-comment'
+            - match: '^\s*(:)root'
+              name: keyword.language.css.sciter
+              beginCaptures:
+                  '1': { name: punctuation.definition.keyword.css }
+            - begin: '[^^]{'
+              end: '}'
+              patterns:
+                  - include: '#block-comment'
+                  - include: '#line-comment'
+                  - include: '#sciter-properties'
+                  - include: '#property-name'
+                  - include: '#property-value'
+            - include: '#property-name'            
+            - include: '#property-value'
+            - include: '#sciter-properties'
+            - include: '#selector'
+
+    at-const:
+        begin: '(@const)(\s+[^:]+)?'
+        end: ';|$'
+        beginCaptures:
+            '1': { name: keyword.control.at-rule.const.css.sciter }
+            '2': { name: constant.language.css.sciter }            
+        patterns:
+            - include: '#property-value'
+
+    at-media:
+        begin: '(@media)(?:.*{)?' # to eat { on the same line
+        beginCaptures:
+            '1': { name: keyword.control.at-rule.sciter.css }
+        contentName: punctuation.css
+        patterns:
+            - include: '#block-comment'
+            - include: '#line-comment'
+            - include: '#at-const'
+            - include: '#at-font-face'
+            - include: '#at-mixin'
+            - include: '#selector'
+            - begin: '{'
+              end: '(?=})'
+              patterns:
+                  - include: '#block-comment'
+                  - include: '#line-comment'
+                  - include: '#at-const'
+                  - include: '#at-mixin'
+                  - include: '#sciter-properties'
+                  - include: '#property-names'
+                  - include: '#property-value'
+        end: '\}'
+
+    rule-list: #support.type.property-name.css
+        begin: '\{'
+        beginCaptures:
+            '0': { name: punctuation.section.property-list.begin.css }
+        end: '}'
+        endCaptures:
+            '0': { name: punctuation.section.property-list.end.css }
+        patterns:
+            - include: '#block-comment'
+            - include: '#line-comment'
+            - include: '#property-name'
+            - include: '#property-value'
+            - include: '#sciter-properties'
+
+    sciter-properties:
+        begin: '(aspect|behavior|prototype|style-set|context-menu):\s*([\w-]++)?' #? for style-set
+        beginCaptures:
+            '1': { name: support.type.property-name.css }
+            '2': { name: support.type.behavior.sciter }
+        end: ';'
+        patterns:
+            - include: '#url'
+            - include: '#string-single'
+            - include: '#string-double'
+
+    property-name:
+        patterns:
+            - match: '(@)([\w-]+)?'
+              name: support.type.mixin
+            - include: '#property-names'
+
+    property-names:
+        match: 'font(?:-(?:family|size|style|weight|rendering-mode))?|letter-spacing|line-height|text-(?:align|decoration|indent|overflow|transform|selection-color|selection-background-color|selection)|vertical-align|white-space|word-(wrap|break)|background(?:-(?:attachment|color|image(-frame)?|position(-(left|right|top|bottom))?|repeat))?|color|foreground(?:-(?:attachment|color|image(-(frame|cursor))?|position(-(left|right|top|bottom))?|repeat))?|border(-radius|-spacing|-collapse|((-(bottom|top|left|right))?(-(color|style|width))?))?|clear|float|(padding|margin)(-(left|bottom|right|top))?|list-style(-(image|position|type))?|list-marker(-(color|size|style))|position|left|right|top|bottom|height|z-index|overflow(-(x|y))?|scroll-manner(-(x|y))?|width|(min|max)-(width|height)|flow|hit-margin|size|mapping|outline(-(style|width|color|offset))?|cursor|display|visibility|direction|transition|page-break-(before|after)|(^|(?<=\s))-filter|popup-position|content|box-shadow'
+        name: support.type.property-name.css                
+
+    property-value:
+        begin: '(?<!:)(:)(?!(:|first-child|last-child|link|visited|active|hover|focus|tab-focus|focusable|current|checked|disabled|read-only|expanded|collapsed|incomplete|busy|empty|has-child|has-children|animating|popup|owns-popup|synthetic|drop-target|drag-over|moving|copying|drag-source|rtl|ltr|invalid|drop-marker|content-editable|not|nth-|only-|has-|node|root))\s*' #exclude all pseudoclasses!!!
+        end: '\s*(;|(?=\}))'
+        beginCaptures:
+            '1': {name: punctuation.separator.key-value.css}
+        endCaptures:
+            '1': {name: punctuation.terminator.rule.css}              
+        patterns:
+            - include: '#property-values'
+    
+    property-values:
+        patterns:
+            - include: '#constant'
+            - include: '#numeric-values'
+            - include: '#string-double'
+            - include: '#string-single'
+            - include: '#color-values'
+            - include: '#url'
+            - name: keyword.other.important.css
+              match: '\!\s*important'
+            - name: support.constant.font-name.css
+              match: '(\b(?i:arial|century|comic|courier|garamond|georgia|helvetica|impact|lucida|symbol|system|tahoma|times|trebuchet|utopia|verdana|webdings|sans-serif|serif|monospace)\b)'
+              
+    constant:
+        match: '(@)([\w-]+)?'
+        name: constant.language.css.sciter                  
+
+    numeric-values:
+        patterns:
+            - match: '([-+]?(?:[0-9]+|[0-9]*\.[0-9]+)(?:[eE][-+]?[0-9]*)?)(ms|px|em|ex|in|cm|mm|pt|pc|vw|vh|vmin|vmax|dip|\*|\%{1,2})?'
+              captures:
+                  '1': {name: constant.numeric.css}
+                  '2': {name: keyword.unit.css}
+            - name: constant.numeric.zero.css
+              match: '0|\*'
+
+    color-values:
+        patterns:
+            - comment: 'Basic color keywords: http://www.w3.org/TR/css3-color/#html4'
+              name: constant.other.color.rgb-value.css
+              match: '\b(aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|purple|red|silver|teal|white|yellow)\b'              
+            - comment: 'Extended color keywords: http://www.w3.org/TR/css3-color/#svg-color'
+              name: constant.other.color.rgb-value.css
+              match: '\b(aliceblue|antiquewhite|aquamarine|azure|beige|bisque|blanchedalmond|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|gainsboro|ghostwhite|gold|goldenrod|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|limegreen|linen|magenta|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|oldlace|olivedrab|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|rebeccapurple|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|thistle|tomato|turquoise|violet|wheat|whitesmoke|yellowgreen)\b'
+            - name: constant.other.color.rgb-value.css
+              match: '(#)([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b'
+              captures:
+                    '1': {name: punctuation.definition.constant.css}
+            - begin: '(hsla?|rgba?|tint)\s*(\()' #todo separete parsing for all cases
+              beginCaptures:
+                  '1': {name: constant.other.color.rgb-value.css }
+                  '2': {name: punctuation.section.function.css}
+              end: '(\))'
+              endCaptures:
+                  '1': {name: punctuation.section.function.css}
+              patterns:
+                  - include: "#constant"
+                  - include: "#numeric-values"
+                  #- match: "([0-9]{1,3}%?)\s*,\s*([0-9]{1,3}%?)\s*,\s*([0-9]{1,3}%?)(?:\s*,\s*([01](?:\.\d+)?))?"
+                  #  captures:
+                  #      '1': {name: variable.parameter.misc.css}
+                  #      '2': {name: variable.parameter.misc.css}
+                  #      '3': {name: variable.parameter.misc.css}
+                  #      '4': {name: variable.parameter.misc.css}
+
+    selector:
+        patterns: 
+            - include: "source.sciter.selectors" 

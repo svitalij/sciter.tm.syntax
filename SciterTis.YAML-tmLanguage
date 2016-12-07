@@ -1,0 +1,351 @@
+scopeName: source.sciter.tis
+name: TIScript
+uuid: 12d8e808-2b62-4218-ad1d-730903a5bed5
+fileTypes:
+    - tis
+patterns:
+    - include: '#expression'
+
+repository:
+    expression:
+        name: meta.expression.tis
+        patterns:
+            - include: "#comment"
+            - include: "#literal"
+            - include: "#stringize-selector"
+            - include: "#statements" # keep before block
+            - include: "#block"
+            - include: "#paren-expression"
+            - include: "#var-decl"
+            - include: "#declaration"
+            - include: "#other-keywords"
+            - include: "#known-types"
+            - include: "#known-methods"
+            - include: "#known-functions"
+            - include: "#known-properties"            
+            - include: "#ops"            
+#            - include: "#var-point"
+#            - include: "#var-simple-assign"  # keep var-simple-* at the end
+#            - include: "#var-simple-left-assign"
+#            - include: "#var-simple-return"
+    comment:
+        name: comment.tis
+        patterns:
+            - include: "#doc-comment"
+            - include: "#block-comment"
+            - include: "#line-comment"
+
+    comment-block-doc:
+        name: comment.block.documentation.tis
+        begin: "/\\*\\*(?!/)"
+        end: "\\*/"			
+        
+    block-comment:
+        name: comment.block.tis
+        begin: '/\*'
+        end: '\*/'
+
+    line-comment:
+        name: comment.line.tis
+        begin: '//'
+        end: '$'
+
+    literal:
+        name: literal.tis
+        patterns:
+            - include: "#string-literal"
+            - include: "#regex"
+            - include: "#numeric-literal"
+            - include: "#boolean-literal"
+            - include: "#null-literal"
+            - include: "#undefined-literal"
+            - include: "#tuple-literal"
+            - include: "#array-literal"
+            - include: "#this-literal"
+            - include: "#self-literal"
+            - include: "#global-vars"
+            - include: "#symbol-literal"
+    string-literal:
+        name: string.tis
+        patterns:
+            - include: "#qstring-double"
+            - include: "#qstring-back-tick"
+    qstring-double:
+        name: string.double.tis
+        begin: '"'
+        end: '"|(?:[^\\\n]$)'
+        patterns:
+            - include: "#string-character-escape"
+    qstring-back-tick:
+        name: string.back-tick.tis
+        begin: '`'
+        end: '`|(?:[^\\\n]$)'
+        patterns:
+            - include: "#string-character-escape"
+    string-character-escape:
+        match: '\\(x[0-9a-fA-F]{1,2}|[btnfr"\\`]|[0-7]{1,3}|u[0-9a-fA-F]{4}|$)'
+        name: constant.character.escape
+    regex:
+        name: string.regex.tis
+        begin: '(?<=[=(:,\[]|^|return|&&|\|\||!)\s*(\/)(?![\/*+{}?])'
+        beginCaptures:
+            '1': { name: entity.name.class.rx}
+        end: '$|(\/i?g?)'
+        endCaptures:
+            '1': { name: entity.name.class.rx}
+        patterns:
+            - match: '\\.'
+              name: constant.character.escape.tis
+            - match: '\[(\\\]|[^\]])*\]'
+              name: constant.character.class.tis
+    
+    numeric-literal:
+        patterns:
+            - include: "#float-literal"
+            - include: "#integer-literal"
+        name: constant.numeric.tis
+    integer-literal:
+        match: '''.''|(-?\b(0[xX][0-9a-fA-F]+|-?([0-9]+))\b)'
+        name: constant.numeric.integer.tis
+    float-literal:
+        match: '-?(([0-9]*\.[0-9]+[eE]-?[0-9]+)|([0-9]+[eE]-?[0-9]+)|([0-9]*\.[0-9]+))'
+        name: constant.numeric.float.tis
+    boolean-literal:
+        match: '\b(false|true)\b'
+        name: constant.language.boolean.tis
+    null-literal:
+        match: '\b(null)\b'
+        name: constant.language.null.tis
+    undefined-literal:
+        match: '\b(undefined)\b'
+        name: constant.language.tis
+    tuple-literal:
+        begin: '(\[)([\w$@-]+):'
+        beginCaptures:
+            '1': { name: meta.brace.square.tis }
+            '2': { name: constant.language.symbol.tis }
+        end: '\]'
+        endCaptures:
+            '0': { name: meta.brace.square.tis }
+        name: meta.tuple.literal.tis
+        patterns:
+            - include: '#expression'
+    array-literal:
+        begin: '\['
+        beginCaptures:
+            '0': { name: meta.brace.square.tis }
+        end: '\]'
+        endCaptures:
+            '0': { name: meta.brace.square.tis }
+        name: meta.array.literal.tis
+        patterns:
+            - include: '#expression'
+    this-literal:
+        match: '\b(this)\b'
+        name: constant.language.this.tis
+    self-literal:
+        match: '\b(self)\b'
+        name: constant.language.self.tis
+    global-vars:
+        match: '\b(view|std(in|out|err))\b'
+        name: constant.language.other.tis        
+    symbol-literal:
+        match: '#[\w$@-]+'
+        name: constant.language.symbol.tis
+    block:
+        begin: '(\{)(:\w+)?'
+        beginCaptures:
+            '1': { name: meta.brace.square.tis }
+            '2': { name: entity.name.class.tis }
+        end: '\}'
+        endCaptures:
+            '0': { name: meta.brace.square.tis }
+        name: meta.block.tis
+        patterns:
+            - include: "#simple-keywords" # keep beforeo bject-member
+            - include: '#object-member'
+            - include: '#expression'
+    object-member:
+        begin: '[a-zA-Z_$][\w$]*\s*:'
+        end: '(?=,|\})'
+        name: meta.object.member.tis
+        patterns:
+            - include: "#expression"
+    var-decl:
+        begin: '\s*\b(var|const)\b'
+        beginCaptures:
+            '1': { name: storage.type.tis }
+        end: '(?=$|;)'
+        name: meta.var.expr.tis
+        patterns:
+            - include: '#var-single-variable'
+            - include: '#comment'
+    var-single-variable:
+        begin: '\b([a-zA-Z_$][\w$]*)\s*(=?)'
+        beginCaptures:
+#            '1': { name: variable.tis }
+            '2': { name: variable.operator.tis }
+        end: '(?=$|[;,])'
+        name: meta.var-single-variable.expr.tis
+        patterns:
+            - include: '#string'
+            - include: '#comment'
+            - include: '#expression'
+    paren-expression:
+        begin: '\('
+        beginCaptures:
+            '0': { name: meta.brace.paren.tis }
+        end: '\)'
+        endCaptures:
+            '0': { name: meta.brace.paren.tis }
+        patterns:
+            - include: '#expression'
+    var-point:
+        match: '(?<=^|\s)([a-zA-Z_]\w*)\.'
+        captures: 
+            '1': { name: variable.tis }
+    var-simple-assign:
+        match: '(?<=^|\s)([a-zA-Z_]\w*)\s*(?=[=>!<+-\/*%|&])'
+        captures: 
+            '1': { name: variable.tis }
+    var-simple-left-assign:
+        match: '(?<=[=<>+-\/*%|&])\s*([a-zA-Z_]\w*)'
+        captures: 
+            '1': { name: variable.tis }
+    var-simple-return:
+        match: '(?<=return)\s*([a-zA-Z_]\w*)'
+        captures: 
+            '1': { name: variable.tis }
+    stringize-selector:
+        begin: '(\.\$)?\$(is|p)?\('
+        beginCaptures:
+            '0': {name: string.stringize.tis }
+        end: '\)'
+        endCaptures:
+            '0': {name: string.stringize.tis }
+        patterns:
+            - match: '\{\s*\w+\s*\}'
+              name: variable.tis
+            - include: "source.sciter.selectors"      
+            
+    declaration:
+        name: meta.declaration.tis
+        patterns:
+            - include: '#function-declaration'
+            - include: '#decorator'
+            - match: '(class)\s+([a-zA-Z]\w+)(?:\s*:\s*([a-zA-Z]\w+))?\s*'
+              captures:
+                '1': {name: storage.type.class.tis}
+                '2': {name: entity.name.class.tis }
+                '3': {name: entity.name.class.tis}              
+
+    function-declaration:
+        begin: '\b(?:(async)\s+)?(function\b)(?:\s+(?:(self).)?([a-zA-Z_$@][\w$]*))?\s*'
+        beginCaptures:
+            '1': {name: storage.modifier.tis}
+            '2': {name: storage.type.function.tis}
+            '3': {name: constant.language.self.tis}
+            '4': {name: entity.name.function.tis}
+        end: '(?=;|\})|(?<=\})'
+        # name: meta.function.tis
+        patterns:
+            - include: '#comment'
+            - include: '#function-type-parameters'
+            - include: '#function-overload-declaration'
+            - include: '#decl-block'
+    function-overload-declaration:
+        captures:
+            '1': {name: storage.type.function.tis}
+            '2': {name: entity.name.function.tis}
+        match: '\b(function\b)(?:\s+([a-zA-Z_$][\w$]*))?\s*'
+        # name: meta.function.overload.tis
+    decl-block:
+        begin: '\{'
+        beginCaptures:
+            '0': {name: meta.brace.curly.tis}
+        end: '\}'
+        endCaptures:
+            '0': {name: meta.brace.curly.tis}
+        # name: meta.decl.block.tis
+        patterns:
+            - include: '#expression'
+    function-type-parameters:
+        begin: '\('
+        beginCaptures:
+            '0': {name: meta.brace.round.tis}
+        end: '\)'
+        endCaptures:
+            '0': {name: meta.brace.round.tis}
+        # name: meta.function.type.parameter.tis
+        patterns:
+            - include: '#comment'
+            - include: '#parameter-name'
+            - include: '#variable-initializer'
+    parameter-name:
+        match: '([a-zA-Z_$][\w$]*)(\.\.)?'
+        name: parameter.name.tis
+        captures:
+#            '1': {name: variable.parameter.tis}
+            '2': {name: keyword.others.tis}
+    variable-initializer:
+        begin: '(=)'
+        beginCaptures:
+            '1': {name: variable.operator.tis }
+        end: '(?=$|[,);=])'
+        patterns:
+            - include: '#expression'
+    decorator:
+        match: '@[a-zA-Z_$][\w$]*'
+        name: entity.name.function.decorator.tis
+    statements:
+        patterns:
+            - include: "#break"
+            - include: "#for"
+            - include: "#control-statement"
+            - include: "#labeled-statement"
+            - include: "#other-keywords"
+    control-statement:
+        match: '(?<!\.)\b(if|else|switch|continue)\b'
+        name: keyword.control.tis
+    for:
+        begin: '(?<!\.)\b(for)(?:\s*:\s*([a-zA-Z_$][\w$]*))?\b\s*\('
+        beginCaptures:
+            '1': { name: keyword.control.tis }
+            '2': { name: markup.italic }    
+        end: '\)'
+        patterns:
+            - match: '\s*\bvar\b\s*'
+              name: 'storage.type.tis'
+            - match: '\s*\bin\b\s*'
+              name: 'keyword.control.tis'
+            - include: '#expression'
+    labeled-statement:
+        match: '(?<!\.)\b(while|do|for)(?:\s*:\s*([a-zA-Z_$][\w$]*))?\b'
+        captures: 
+            '1': { name: keyword.control.tis }
+            '2': { name: markup.italic }    
+    break:
+        match: '(?<!\.)\b(break)(?:\s+([a-zA-Z_$][\w$]*))?\b'
+        captures: 
+            '1': { name: keyword.control.break.tis }
+            '2': { name: markup.italic }
+    other-keywords:
+        match: '(?<!\.)\b(return|throw|try|catch|finally|with|await|yield|include|delete|assert|get|set|property|typeof|instanceof|new|namespace)\b'
+        name: keyword.other.tis
+    known-types:
+        match: '(?<!\.)\b(JSON|Integer|Float|String|Symbol|Array|Object|Function|Length|Angle|Duration|Color|Date|Bytes|Typle|Stream|View|Element|Event|Image|DataSocket|WebSocket|Tokenizer|Math|System|VM|Storage|Index|XMLScanner)\b'
+        name: entity.name.class.internal.tis
+    known-functions:
+        match: '(?<!\.)\b(eval|parseData|emit|load(bc)?|compile|store|fetch|hash|membersOf|rand|gc|crackUrl|symbol|color|em|pr|px|cm|pt|dip|flex|rad|deg)(?=\()'
+        name: entity.name.function.internal.tis    
+    known-methods:        
+        match: '(?<=\.)\b(stringify|toString|toLocaleString|valueOf|clone|extend|exists|remove|call|show|eval|propertyAt|seal|isSealed|freeze|isFrozen|addObserver|removeObserver|referenceOf|push|shift|pop|unshift|concat|join|reverse|slice|splice|sort|indexOf|lastIndexOf|removeByValue|map|reduce(Right)?|filter|toInteger|toFloat|toNumber|toHtmlString|toUrlString|substring|substr|charAt|charCodeAt|lexicalCompare|match|replace|search|split|fromCharCode|toLowerCase|toUpperCase|trim|urlEscape|urlUnescape|htmlEscape|htmlUnescape|scanf|apply|utc|local|toUTCString|toISOString|parse|UTC|setTime|monthName|dayOfWeekName|isDaylight|timeZoneOffset|timeZoneName|min|max|isNaN|isFinite|morph|limit|rgba|hsv|hsl|tint|toHSV|toHSL|degrees|radians|abs|sin|cos|tan|atan|asin|acos|sqrt|ceil|floor|round|exp|log|log2|log10|pow|random|openFile|openSocket|openString|openPipe|close|print|println|$n|printf|putc|getc|readln|send|post|fromString|md5|crc32|save|scanFiles|home|path|open|commit|createIndex|add|select|token)(?=\()'
+        name: entity.name.method.internal.tis
+    known-properties:
+        match: '(?<=\.)\b(prototype|className|length|first|last|name|fullName|optionals|(UTC)?month|(UTC)?year|(UTC)?hour|(UTC)?minute|(UTC)?(milli)?second|(UTC)?day(OfWeek)?|firstDayOfWeek|MIN|MAX|input|source|index|r|g|b|a|opacity|units|degrees|radians|E|LN2|LN10|LOG2E|LOG10E|PI|SQRT1_2|SQRT2|is(Input|Output|Pipe)|proxy|pending|encoding|type|IS_(READONLY|DIR|HIDDEN)|((MOBILE|DESKTOP)_)?OS|PLATFORM|language|country|ticks|root|autocommit|asc|ERROR|EOF|(EMPTY_)?HEAD(_END)?|TAIL|ATTR|TEXT|CDATA|PI|DOCTYPE|value|attribute|tag)\b'
+        name: entity.name.method.internal.tis
+    
+    ops:
+        match: '(\|\||&&|\^=|={1,3}|(\+|-|\*|\/|%|<{1,3}|>{1,3}|&|\|)=?)'
+        # name: keyword.operator
+        name: variable.operator.tis

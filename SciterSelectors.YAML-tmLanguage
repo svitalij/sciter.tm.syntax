@@ -1,0 +1,59 @@
+scopeName: source.sciter.selectors
+name: Sciter CSS Selectors
+fileTypes:
+    -
+uuid: cccd98df-a526-4251-82a2-3908400ca427
+hideFromUser: true
+
+patterns:
+    - include: '#selector'
+
+repository:
+    selector:
+        patterns:
+            - include: '#attribute-selector'
+            - include: '#class-selector'
+            - include: '#id-selector'
+            - include: '#simple-pseudo-class-selector'
+            - include: '#after-before'
+            - include: '#not-selector'
+            - include: '#child-selector'
+
+    attribute-selector:
+        begin: '\['
+        end: '\]'
+        name: entity.name.selector
+
+    class-selector:
+        match: '\.[\w-]+'
+        name: entity.name.selector
+    id-selector:
+        match: '\#[\w-]+'
+        name: entity.name.selector
+    simple-pseudo-class-selector:
+        # keep in sync with #property-value
+        match: '(:)(first-child|last-child|link|visited|active|hover|focus|tab-focus|focusable|current|checked|disabled|read-only|expanded|collapsed|incomplete|busy|empty|has-children(-of-type)?|has-child(-of-type)?|animating|popup|owns-popup|synthetic|drop-target|drag-over|moving|copying|drag-source|rtl|ltr|invalid|drop-marker|content-editable|node|root)'
+        name: entity.name.selector
+    after-before:
+        match: '(::)(after|before)'
+        name: entity.name.selector
+    not-selector:
+        begin: '\s*(:not)\s*(\()\s*'
+        beginCaptures:
+            '1': { name: keyword.control.c }
+            '2': { name: punctuation.section.function.css }
+        end: '\s*(\))\s*'
+        endCaptures:
+            '1': { name: punctuation.section.function.css}
+        patterns:
+            - include: '#selector'
+    child-selector:
+        begin: '\s*(:(?:nth-child|nth-last-child|only-child|only-of-type|has-child-of-type|has-children-of-type))\s*(\()\s*'
+        beginCaptures:
+            '1': { name: keyword.control.c }
+            '2': { name: punctuation.section.function.css }
+        end: '\s*(\))\s*'
+        endCaptures:
+            '1': { name: punctuation.section.function.css}
+        patterns:
+            - include: '#selector'
