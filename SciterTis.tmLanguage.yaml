@@ -264,7 +264,7 @@ repository:
         begin: '\b(event\b)(?:\s+([a-zA-Z_$][\w$.]*))?\s*'
         beginCaptures:
             '1': {name: storage.type.event.tis}
-            '2': {name: entity.name.event.tis}
+            '2': {name: entity.name.function.tis} # entity.name.event.tis is better, but most themes do not have .event color
         end: '(?=;|\})|(?<=\})'
         # name: meta.function.tis
         patterns:
